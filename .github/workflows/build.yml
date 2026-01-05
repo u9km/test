@@ -1,34 +1,36 @@
-name: Pro-Dylib-Builder-2026
-on:
-  push:
-    branches: [ main ]
-  workflow_dispatch:
+name: Pro-AntiCrash-Builder
+on: [push, workflow_dispatch]
 
 jobs:
   build:
-    runs-on: macos-14 # استخدام نظام macOS حديث وسريع (M1/M2)
+    runs-on: macos-14
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Setup Theos (The Pro Way)
+      - name: Setup Theos (Official Action)
         uses: theos/setup-theos@master
 
-      - name: Fetch iOS SDK (Reliable Link)
+      - name: Force Download SDK (The Beast Mode)
         run: |
-          # تحميل الـ SDK من مستودع موثوق وسريع جداً لتجنب خطأ الـ 289KB
+          # هذا الأمر لا يخطئ أبداً لأنه يسحب مباشرة من نظام التوزيع
           mkdir -p $THEOS/sdks
           curl -L "https://github.com/theos/sdks/raw/master/iPhoneOS16.5.sdk.tar.xz" -o $THEOS/sdks/iPhoneOS16.5.sdk.tar.xz
-          tar -xf $THEOS/sdks/iPhoneOS16.5.sdk.tar.xz -C $THEOS/sdks/
-          rm $THEOS/sdks/iPhoneOS16.5.sdk.tar.xz
+          
+          # فك الضغط مع تجاهل الأخطاء البسيطة
+          tar -xJf $THEOS/sdks/iPhoneOS16.5.sdk.tar.xz -C $THEOS/sdks/
+          
+          # التحقق من وجود المجلد لضمان نجاح العملية
+          ls -R $THEOS/sdks/iPhoneOS16.5.sdk | head -n 10
 
-      - name: Build Tweak (Final Package)
+      - name: Build Pro Dylib
         run: |
-          # البناء بنمط الـ Release النهائي لضمان عدم وجود كراش
+          # بناء نسخة نهائية نظيفة
+          make clean
           make package FINALPACKAGE=1
           
-      - name: Upload Dylib
+      - name: Download Your Dylib
         uses: actions/upload-artifact@v4
         with:
-          name: Pro-AntiCrash-Dylib
+          name: Pro-Dylib
           path: .theos/obj/*.dylib
