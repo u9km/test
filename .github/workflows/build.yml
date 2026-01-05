@@ -1,42 +1,31 @@
-name: Build Non-Jailbreak Dylib 2026
-on: 
-  push:
-    branches: [ main ]
-  workflow_dispatch:
+name: Build-Dylib-2026
+on: [push, workflow_dispatch]
 
 jobs:
   build:
-    # استخدام إصدار مستقر من macOS
-    runs-on: macos-14 
-
+    runs-on: macos-14
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4 # تحديث إلى v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - name: Setup Theos Environment
+      - name: Setup Theos
         run: |
-          # تثبيت الـ Theos بشكل نظيف ومحدث
-          export THEOS=~/theos
           bash -c "$(curl -fsSL https://raw.githubusercontent.com/theos/theos/master/bin/install-theos)"
-          echo "THEOS=$THEOS" >> $GITHUB_ENV
-          echo "$THEOS/bin" >> $GITHUB_PATH
+          echo "THEOS=~/theos" >> $GITHUB_ENV
 
-      - name: Update SDKs (المسار الجديد)
+      - name: Fix SDK Error
         run: |
-          # تنزيل SDK حديث لضمان عدم حدوث كراش مع إصدارات iOS الجديدة
           mkdir -p $THEOS/sdks
           curl -LO https://github.com/theos/sdks/raw/master/iPhoneOS16.5.sdk.tar.xz
           tar -xf iPhoneOS16.5.sdk.tar.xz -C $THEOS/sdks/
           rm iPhoneOS16.5.sdk.tar.xz
 
-      - name: Build Dylib
+      - name: Compile
         run: |
-          # البناء مع تنظيف الملفات القديمة
-          make clean
           make package FINALPACKAGE=1
           
-      - name: Upload Finished Dylib
-        uses: actions/upload-artifact@v4 # تحديث إلى v4 لسرعة أكبر
+      - name: Save Dylib
+        uses: actions/upload-artifact@v4
         with:
-          name: MyTweak-Dylib
+          name: MyFinishedDylib
           path: .theos/obj/*.dylib
