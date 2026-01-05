@@ -8,23 +8,24 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Setup Pro Theos Environment
+      - name: Setup Theos
         uses: theos/setup-theos@master
 
-      - name: Download SDK (The Pro Way)
+      - name: Setup iOS SDK (Fix SDK Error)
         run: |
-          # تحميل SDK 16.5 مباشرة إلى المسار الصحيح
-          curl -LO https://github.com/theos/sdks/raw/master/iPhoneOS16.5.sdk.tar.xz
-          tar -xf iPhoneOS16.5.sdk.tar.xz -C $THEOS/sdks/
-          rm iPhoneOS16.5.sdk.tar.xz
+          # تحميل SDK حديث ومتوافق مع جميع أجهزة آيفون
+          mkdir -p $THEOS/sdks
+          curl -L https://github.com/theos/sdks/raw/master/iPhoneOS16.5.sdk.tar.xz -o $THEOS/sdks/iPhoneOS16.5.sdk.tar.xz
+          tar -xf $THEOS/sdks/iPhoneOS16.5.sdk.tar.xz -C $THEOS/sdks/
+          rm $THEOS/sdks/iPhoneOS16.5.sdk.tar.xz
 
       - name: Build Dylib
         run: |
-          # بناء بنسخة Release نهائية ومضغوطة
+          # بناء الملف بنسخة Release نهائية ومحسنة
           make package FINALPACKAGE=1
           
-      - name: Upload Pro Dylib
+      - name: Upload Dylib
         uses: actions/upload-artifact@v4
         with:
-          name: Pro-AntiCrash-Dylib
+          name: AntiCrash-Pro-Dylib
           path: .theos/obj/*.dylib
