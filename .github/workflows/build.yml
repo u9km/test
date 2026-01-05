@@ -3,35 +3,36 @@ on: [push, workflow_dispatch]
 
 jobs:
   build:
-    runs-on: macos-latest # الماك يحتوي على الأدوات الأساسية
+    runs-on: macos-latest
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Install Theos (Manual Setup)
+      - name: Install Theos (Force Manual)
         run: |
+          # تحميل Theos مباشرة كملف مضغوط لتجنب طلبات الـ API الكثيرة
+          curl -L https://github.com/theos/theos/archive/master.zip -o theos.zip
+          unzip -q theos.zip
+          mv theos-master ~/theos
+          echo "THEOS=~/theos" >> $GITHUB_ENV
+          echo "~/theos/bin" >> $GITHUB_PATH
+
+      - name: Manual SDK Setup
+        run: |
+          # تحميل الـ SDK برابط مباشر (هذا يحل مشكلة الـ API failed)
+          mkdir -p ~/theos/sdks
+          curl -L https://github.com/theos/sdks/raw/master/iPhoneOS16.5.sdk.tar.xz -o ~/theos/sdks/iPhoneOS16.5.sdk.tar.xz
+          tar -xf ~/theos/sdks/iPhoneOS16.5.sdk.tar.xz -C ~/theos/sdks/
+          rm ~/theos/sdks/iPhoneOS16.5.sdk.tar.xz
+
+      - name: Compile Pro Dylib
+        run: |
+          # تأكد من استخدام المسار الصحيح
           export THEOS=~/theos
-          # تثبيت نظام Theos يدوياً لضمان عدم وجود أخطاء مسارات
-          bash -c "$(curl -fsSL https://raw.githubusercontent.com/theos/theos/master/bin/install-theos)"
-          echo "THEOS=$THEOS" >> $GITHUB_ENV
-          echo "$THEOS/bin" >> $GITHUB_PATH
-
-      - name: Download iOS SDK (Fix Missing Error)
-        run: |
-          # تحميل الـ SDK مباشرة لمجلد Theos
-          mkdir -p $THEOS/sdks
-          curl -L https://github.com/theos/sdks/raw/master/iPhoneOS16.5.sdk.tar.xz -o $THEOS/sdks/iPhoneOS16.5.sdk.tar.xz
-          tar -xf $THEOS/sdks/iPhoneOS16.5.sdk.tar.xz -C $THEOS/sdks/
-          rm $THEOS/sdks/iPhoneOS16.5.sdk.tar.xz
-
-      - name: Build Dylib (The Pro Fix)
-        run: |
-          # تأكد من تنظيف المشروع قبل البناء لمنع التعارض
-          make clean
-          make package FINALPACKAGE=1
+          $THEOS/bin/make package FINALPACKAGE=1
           
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: AntiCrash-Dylib
+          name: Pro-Dylib-Finished
           path: .theos/obj/*.dylib
