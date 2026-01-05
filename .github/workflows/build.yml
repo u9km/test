@@ -1,31 +1,35 @@
-name: Build-Dylib-2026
+name: Auto-Build-Dylib
 on: [push, workflow_dispatch]
 
 jobs:
   build:
-    runs-on: macos-14
+    runs-on: macos-14 # استخدام نظام ماك حديث لضمان السرعة
     steps:
-      - name: Checkout
+      - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Setup Theos
+      - name: Setup Theos Environment
         run: |
+          # تثبيت أدوات البناء تلقائياً
           bash -c "$(curl -fsSL https://raw.githubusercontent.com/theos/theos/master/bin/install-theos)"
           echo "THEOS=~/theos" >> $GITHUB_ENV
 
-      - name: Fix SDK Error
+      - name: Download SDK Automatically
         run: |
-          mkdir -p $THEOS/sdks
-          curl -LO https://github.com/theos/sdks/raw/master/iPhoneOS16.5.sdk.tar.xz
-          tar -xf iPhoneOS16.5.sdk.tar.xz -C $THEOS/sdks/
-          rm iPhoneOS16.5.sdk.tar.xz
+          # هذا السطر يحل مشكلة "لا املك ملف SDK" 
+          # سيقوم بتحميل SDK 16.5 الرسمي من مستودع Theos
+          mkdir -p ~/theos/sdks
+          curl -L https://github.com/theos/sdks/raw/master/iPhoneOS16.5.sdk.tar.xz -o ~/theos/sdks/iPhoneOS16.5.sdk.tar.xz
+          tar -xf ~/theos/sdks/iPhoneOS16.5.sdk.tar.xz -C ~/theos/sdks/
+          rm ~/theos/sdks/iPhoneOS16.5.sdk.tar.xz
 
-      - name: Compile
+      - name: Compile Dylib
         run: |
+          # بناء الملف النهائي
           make package FINALPACKAGE=1
           
-      - name: Save Dylib
+      - name: Get Your File
         uses: actions/upload-artifact@v4
         with:
-          name: MyFinishedDylib
+          name: Clean-Dylib
           path: .theos/obj/*.dylib
