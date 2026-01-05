@@ -1,44 +1,15 @@
-name: Pro-Dylib-Builder
-on: [push, workflow_dispatch]
-
-jobs:
-  build:
-    runs-on: macos-latest
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-
-      - name: Install Theos (Force Manual)
-        run: |
-          curl -L https://github.com/theos/theos/archive/master.zip -o theos.zip
-          unzip -q theos.zip
-          mv theos-master ~/theos
-          echo "THEOS=~/theos" >> $GITHUB_ENV
-          echo "~/theos/bin" >> $GITHUB_PATH
-
       - name: Manual SDK Setup (The Fix)
         run: |
           mkdir -p ~/theos/sdks
-          # استخدام رابط مباشر يدعم التحميل في GitHub Actions بدون أخطاء Format
-          curl -L "https://github.com/theos/sdks/raw/master/iPhoneOS16.5.sdk.tar.xz" -o ~/theos/sdks/iPhoneOS16.5.sdk.tar.xz
+          # استخدام رابط SDK 16.5 من مصدر بديل ومستقر جداً
+          curl -L "https://github.com/theos/sdks/releases/latest/download/iPhoneOS16.5.sdk.tar.xz" -o ~/theos/sdks/iPhoneOS16.5.sdk.tar.xz
           
-          # التحقق من الملف قبل الفك (إذا كان الملف تالفاً سيتوقف هنا)
-          if [[ $(file --mime-type -b ~/theos/sdks/iPhoneOS16.5.sdk.tar.xz) != "application/x-xz" && $(file --mime-type -b ~/theos/sdks/iPhoneOS16.5.sdk.tar.xz) != "application/octet-stream" ]]; then
-            echo "Error: SDK Download failed or file is corrupt";
-            exit 1;
+          # التحقق من حجم الملف: إذا كان أقل من 5 ميجا فهذا يعني أنه لم يحمل الملف الحقيقي
+          FILESIZE=$(stat -f%z "~/theos/sdks/iPhoneOS16.5.sdk.tar.xz")
+          if [ $FILESIZE -lt 5000000 ]; then
+              echo "Error: File too small ($FILESIZE bytes). Link might be broken."
+              exit 1
           fi
           
           tar -xf ~/theos/sdks/iPhoneOS16.5.sdk.tar.xz -C ~/theos/sdks/
           rm ~/theos/sdks/iPhoneOS16.5.sdk.tar.xz
-
-      - name: Compile Pro Dylib
-        run: |
-          export THEOS=~/theos
-          # سطر إضافي لضمان أن المترجم يرى الـ SDK بوضوح
-          $THEOS/bin/make package FINALPACKAGE=1
-          
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: AntiCrash-Dylib-Pro
-          path: .theos/obj/*.dylib
