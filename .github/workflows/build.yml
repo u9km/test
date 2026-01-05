@@ -3,29 +3,35 @@ on: [push, workflow_dispatch]
 
 jobs:
   build:
-    runs-on: macos-14
+    runs-on: macos-latest # الماك يحتوي على الأدوات الأساسية
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Setup Theos
-        uses: theos/setup-theos@master
-
-      - name: Setup iOS SDK (Fix SDK Error)
+      - name: Install Theos (Manual Setup)
         run: |
-          # تحميل SDK حديث ومتوافق مع جميع أجهزة آيفون
+          export THEOS=~/theos
+          # تثبيت نظام Theos يدوياً لضمان عدم وجود أخطاء مسارات
+          bash -c "$(curl -fsSL https://raw.githubusercontent.com/theos/theos/master/bin/install-theos)"
+          echo "THEOS=$THEOS" >> $GITHUB_ENV
+          echo "$THEOS/bin" >> $GITHUB_PATH
+
+      - name: Download iOS SDK (Fix Missing Error)
+        run: |
+          # تحميل الـ SDK مباشرة لمجلد Theos
           mkdir -p $THEOS/sdks
           curl -L https://github.com/theos/sdks/raw/master/iPhoneOS16.5.sdk.tar.xz -o $THEOS/sdks/iPhoneOS16.5.sdk.tar.xz
           tar -xf $THEOS/sdks/iPhoneOS16.5.sdk.tar.xz -C $THEOS/sdks/
           rm $THEOS/sdks/iPhoneOS16.5.sdk.tar.xz
 
-      - name: Build Dylib
+      - name: Build Dylib (The Pro Fix)
         run: |
-          # بناء الملف بنسخة Release نهائية ومحسنة
+          # تأكد من تنظيف المشروع قبل البناء لمنع التعارض
+          make clean
           make package FINALPACKAGE=1
           
-      - name: Upload Dylib
+      - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: AntiCrash-Pro-Dylib
+          name: AntiCrash-Dylib
           path: .theos/obj/*.dylib
