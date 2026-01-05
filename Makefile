@@ -1,12 +1,15 @@
-# تحديد الهدف والمعمارية
-TARGET = iphone:clang:16.5:14.0
-ARCHS = arm64 arm64e
+TARGET := iphone:clang:latest:13.0
+ARCHS := arm64 arm64e
 
-include $(THEOS)/makefiles/common.mk
+INSTALL_TARGET_PROCESSES = SpringBoard
 
-TWEAK_NAME = AntiCrashPro
-# تأكد أن الاسم هنا يطابق اسم ملفك المرفوع بالضبط (Tweak_obfuscated.x)
-AntiCrashPro_FILES = Tweak_obfuscated.x fishhook.c
-AntiCrashPro_CFLAGS = -fobjc-arc
+THEOS_PACKAGE_SCHEME = rootless
+
+TWEAK_NAME = MyTweak
+MyTweak_FILES = Tweak.x
+MyTweak_CFLAGS = -fobjc-arc
+
+# لو عندك صور/Resources حطها داخل مجلد Resources
+MyTweak_RESOURCE_DIRS = Resources
 
 include $(THEOS_MAKE_PATH)/tweak.mk
