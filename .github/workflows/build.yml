@@ -1,36 +1,28 @@
-name: Pro-AntiCrash-Builder
-on: [push, workflow_dispatch]
+name: Build Theos Tweak
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
 
 jobs:
   build:
-    runs-on: macos-14
+    runs-on: macos-latest
+
     steps:
-      - name: Checkout Code
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Theos (Official Action)
-        uses: theos/setup-theos@master
+      - name: Setup Theos
+        uses: procursus/setup-theos@v0.3.0
 
-      - name: Force Download SDK (The Beast Mode)
+      - name: Build package
         run: |
-          # هذا الأمر لا يخطئ أبداً لأنه يسحب مباشرة من نظام التوزيع
-          mkdir -p $THEOS/sdks
-          curl -L "https://github.com/theos/sdks/raw/master/iPhoneOS16.5.sdk.tar.xz" -o $THEOS/sdks/iPhoneOS16.5.sdk.tar.xz
-          
-          # فك الضغط مع تجاهل الأخطاء البسيطة
-          tar -xJf $THEOS/sdks/iPhoneOS16.5.sdk.tar.xz -C $THEOS/sdks/
-          
-          # التحقق من وجود المجلد لضمان نجاح العملية
-          ls -R $THEOS/sdks/iPhoneOS16.5.sdk | head -n 10
-
-      - name: Build Pro Dylib
-        run: |
-          # بناء نسخة نهائية نظيفة
           make clean
           make package FINALPACKAGE=1
-          
-      - name: Download Your Dylib
+
+      - name: Upload deb
         uses: actions/upload-artifact@v4
         with:
-          name: Pro-Dylib
-          path: .theos/obj/*.dylib
+          name: deb
+          path: packages/*.deb
