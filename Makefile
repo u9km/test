@@ -1,12 +1,13 @@
-# تحديد المعمارية وإصدار الـ SDK
-TARGET = iphone:clang:16.5:14.0
+# معمارية ARM64 للأجهزة الحديثة
 ARCHS = arm64 arm64e
+# ربط الـ SDK المحمل في الخطوة السابقة
+TARGET = iphone:clang:16.5:14.0
 
 include $(THEOS)/makefiles/common.mk
 
-TWEAK_NAME = MyTweak
-# تأكد أن اسم ملفك هو Tweak.x وأنه موجود بجانب الملفات الأخرى
-MyTweak_FILES = Tweak.x fishhook.c
-MyTweak_CFLAGS = -fobjc-arc
+TWEAK_NAME = ProAntiCrash
+# إضافة جميع الملفات المطلوبة للبناء
+ProAntiCrash_FILES = Tweak.x fishhook.c
+ProAntiCrash_CFLAGS = -fobjc-arc -O3 # O3 للسرعة القصوى وتقليل حجم الملف
 
 include $(THEOS_MAKE_PATH)/tweak.mk
