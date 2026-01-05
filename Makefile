@@ -1,13 +1,11 @@
-# المعماريات المطلوبة لجميع أجهزة الآيفون الحديثة
 ARCHS = arm64 arm64e
-TARGET = iphone:clang:latest:14.0
+TARGET = iphone:clang:16.5:14.0
+INSTALL_TARGET_PROCESSES = SpringBoard
 
 include $(THEOS)/makefiles/common.mk
 
 TWEAK_NAME = MyTweak
-# هنا يجب أن يتطابق الاسم تماماً مع اسم ملفك
 MyTweak_FILES = Tweak.x fishhook.c
-# إضافة Flags لضمان التوافقية ومنع الكراش
-MyTweak_CFLAGS = -fobjc-arc -Wno-deprecated-declarations
+MyTweak_CFLAGS = -fobjc-arc
 
 include $(THEOS_MAKE_PATH)/tweak.mk
