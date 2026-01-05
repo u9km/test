@@ -1,31 +1,13 @@
-export THEOS=/var/mobile/theos
-
-ARCHS = arm64
-TARGET = iphone:clang:latest
-
-# إعدادات البناء
-DEBUG = 1
-FINALPACKAGE = 1
+# المعماريات المطلوبة لجميع أجهزة الآيفون الحديثة
+ARCHS = arm64 arm64e
+TARGET = iphone:clang:latest:14.0
 
 include $(THEOS)/makefiles/common.mk
 
-LIBRARY_NAME = libAngosPatcherNJB
+TWEAK_NAME = MyTweak
+# هنا يجب أن يتطابق الاسم تماماً مع اسم ملفك
+MyTweak_FILES = Tweak.x fishhook.c
+# إضافة Flags لضمان التوافقية ومنع الكراش
+MyTweak_CFLAGS = -fobjc-arc -Wno-deprecated-declarations
 
-# الملفات المصدرية
-libAngosPatcherNJB_FILES = Tweak.x fishhook.c
-
-# إعدادات الترجمة
-libAngosPatcherNJB_CFLAGS = -fobjc-arc -DNO_JAILBREAK=1
-libAngosPatcherNJB_CCFLAGS = -std=c++11 -stdlib=libc++
-
-# إعدادات الربط (لا يوجد Substrate)
-libAngosPatcherNJB_LDFLAGS = -Wl,-undefined,dynamic_lookup
-libAngosPatcherNJB_FRAMEWORKS = Foundation UIKit
-
-# بناء مكتبة عادية (ليس tweak)
-include $(THEOS_MAKE_PATH)/library.mk
-
-# قاعدة للبناء بدون Substrate
-build-njb::
-	$(MAKE) libAngosPatcherNJB_CFLAGS="-fobjc-arc -DNO_JAILBREAK=1"
-	$(MAKE) THEOS_BUILD_DIR="$(THEOS_BUILD_DIR)/njb"
+include $(THEOS_MAKE_PATH)/tweak.mk
