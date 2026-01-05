@@ -1,0 +1,10 @@
+Package: hmood
+Name: hmood MENU
+Depends: mobilesubstrate
+Version: V5
+Architecture: iphoneos-arm
+Description: https://t.me/hmoodhack
+Maintainer: hmood
+Author: hmood
+Section: Tweaks
+Homepage: https://t.me/hmoodhack
