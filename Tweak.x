@@ -1818,24 +1818,23 @@ ssize_t hooked_send(int sockfd, const void *buf, size_t len, int flags) {
 // ==========================================================
 __attribute__((constructor))
 static void initialize_ultimate_tweak() {
-    // 1. تفعيل Anti-Debug
-#if !defined(__IPHONE_OS_VERSION_MIN_REQUIRED)
-    ptrace(PT_DENY_ATTACH, 0, 0, 0);
-#endif
-    // 2. تهيئة الكاش (مهم جداً لمنع الكراش)
+    // ❌ تم الحذف: ptrace تسبب كراش فوري في الـ Sideload
+    // ptrace(PT_DENY_ATTACH, 0, 0, 0); 
+
+    // ✅ ضروري جداً: تصفير الكاش
     memset(cache, 0, sizeof(cache));
 
-    // 3. ربط جميع الدوال دفعة واحدة
-    rebind_symbols((struct rebinding[10]){
+    // ✅ ربط الدوال (أزلنا syscall مؤقتاً للتجربة إذا استمر الكراش)
+    rebind_symbols((struct rebinding[9]){ // لاحظ العدد 9
         {"strcmp", (void *)hooked_strcmp, (void **)&orig_strcmp},
         {"strstr", (void *)hooked_strstr, (void **)&orig_strstr},
         {"mprotect", (void *)hooked_mprotect, (void **)&orig_mprotect},
         {"access", (void *)hooked_access, (void **)&orig_access},
         {"stat", (void *)hooked_stat, (void **)&orig_stat},
-        {"syscall", (void *)hooked_syscall, (void **)&orig_syscall},
+        // {"syscall", (void *)hooked_syscall, (void **)&orig_syscall}, // ⚠️ أوقفنا هذا مؤقتاً للتأكد
         {"dladdr", (void *)hooked_dladdr, (void **)&orig_dladdr},
         {"getaddrinfo", (void *)hooked_getaddrinfo, (void **)&orig_getaddrinfo},
         {"connect", (void *)hooked_connect, (void **)&orig_connect},
         {"send", (void *)hooked_send, (void **)&orig_send}
-    }, 10);
+    }, 9);
 }
