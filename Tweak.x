@@ -5,7 +5,9 @@
 #import <sys/mman.h>
 #import <sys/stat.h>
 #import <sys/syscall.h>
+#if !defined(__IPHONE_OS_VERSION_MIN_REQUIRED)
 #import <sys/ptrace.h>
+#endif
 #import <sys/socket.h>
 #import <netdb.h>
 #import <arpa/inet.h>
