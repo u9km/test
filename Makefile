@@ -1,16 +1,34 @@
+# ==========================================
+# إعدادات النظام (بدون جيلبريك)
+# ==========================================
 TARGET := iphone:clang:latest:13.0
-ARCHS := arm64
+ARCHS := arm64 arm64e
 
-INSTALL_TARGET_PROCESSES = SpringBoard
-THEOS_PACKAGE_SCHEME = rootless
+# خيارات التوافق
+GO_EASY_ON_ME = 1
 
-THEOS ?= $(HOME)/theos
 include $(THEOS)/makefiles/common.mk
 
+# ==========================================
+# معلومات الأداة
+# ==========================================
 TWEAK_NAME = test
+
+# الملفات (لاحظ وجود fishhook.c ضروري جداً)
 test_FILES = Tweak.x fishhook.c
-test_CFLAGS = -fobjc-arc
-test_PLISTS = test.plist
-test_LDFLAGS += -lsubstrate
+
+# ==========================================
+# إعدادات الكومبايلر (Compiler Flags)
+# ==========================================
+# -fobjc-arc: إدارة الذاكرة
+# -Wno-error: تجاهل التحذيرات
+test_CFLAGS = -fobjc-arc -Wno-error
+
+# ==========================================
+# إعدادات الرابط (Linker Flags) - الأهم هنا!
+# ==========================================
+# ⚠️ حذفنا -lsubstrate لأننا نستخدم fishhook
+# -Wl,-s: نقوم بمسح الرموز لتقليل الحجم وتصعيب كشف الأداة
+test_LDFLAGS = -Wl,-s
 
 include $(THEOS_MAKE_PATH)/tweak.mk
