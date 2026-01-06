@@ -1,37 +1,15 @@
-# ==========================================
-# إعدادات المعالج والنظام (Target & Archs)
-# ==========================================
-# يدعم جميع الأجهزة الحديثة (iPhone 8 إلى iPhone 16 + iPads)
-ARCHS = arm64 arm64e
+TARGET := iphone:clang:latest:13.0
+ARCHS := arm64
 
-# الهدف: iOS 14.0 هو الحد الأدنى لضمان توافق الألعاب الحديثة
-TARGET = iphone:clang:latest:14.0
+INSTALL_TARGET_PROCESSES = SpringBoard
+THEOS_PACKAGE_SCHEME = rootless
 
-# منع التحقق الصارم من الأخطاء (اختياري لتسهيل البناء)
-GO_EASY_ON_ME = 1
-
+THEOS ?= $(HOME)/theos
 include $(THEOS)/makefiles/common.mk
 
-# ==========================================
-# معلومات الأداة (Tweak Info)
-# ==========================================
-TWEAK_NAME = ProAntiBan
-
-# الملفات المطلوبة للبناء (مهم جداً إضافة fishhook.c)
-ProAntiBan_FILES = Tweak.x fishhook.c
-
-# ==========================================
-# إعدادات الكومبايلر (Compiler Flags)
-# ==========================================
-# -fobjc-arc: إدارة الذاكرة التلقائية (يمنع تسريب الذاكرة)
-# -O3: أقصى درجات التحسين (يجعل الكود "طويلاً" وسريعاً جداً)
-# -Wno-error: تجاهل التحذيرات البسيطة
-ProAntiBan_CFLAGS = -fobjc-arc -O3 -Wno-deprecated-declarations -Wno-unused-variable
-
-# ==========================================
-# إعدادات الرابط (Linker Flags)
-# ==========================================
-# -Wl,-s: إزالة الرموز (Strip) لجعل تحليل الملف أصعب على الحماية
-ProAntiBan_LDFLAGS = -Wl,-s
+TWEAK_NAME = test
+test_FILES = Tweak.x fishhook.c
+test_CFLAGS = -fobjc-arc
+test_PLISTS = test.plist
 
 include $(THEOS_MAKE_PATH)/tweak.mk
