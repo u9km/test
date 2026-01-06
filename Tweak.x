@@ -1802,47 +1802,43 @@ ssize_t hooked_send(int sockfd, const void *buf, size_t len, int flags) {
 }
 
 // ==========================================================
-// 4. التشغيل والربط النهائي (The Constructor)
+// 4. التشغيل والربط النهائي (نسخة الأداء العالي - High Performance)
 // ==========================================================
 __attribute__((constructor))
 static void initialize_ultimate_tweak() {
     
-    // 1. حماية السبرينغ بورد (لمنع الريسبرينغ اللانهائي)
     @autoreleasepool {
         NSString *bid = [[NSBundle mainBundle] bundleIdentifier] ?: @"";
-        if ([bid isEqualToString:@"com.apple.springboard"]) {
-            return; // لا تعمل داخل النظام، فقط داخل اللعبة
-        }
+        if ([bid isEqualToString:@"com.apple.springboard"]) return;
     }
 
-    // 2. تجهيز كود الحماية (بدون تشغيله فوراً)
     void (^installHooks)(void) = ^{
         
-        // أ) حماية Anti-Debug (بشكل آمن)
         #if !defined(__IPHONE_OS_VERSION_MIN_REQUIRED)
         ptrace(PT_DENY_ATTACH, 0, 0, 0);
         #endif
 
-        // ب) تصفير الكاش (أهم خطوة لمنع الكراش العشوائي)
         memset(cache, 0, sizeof(cache));
 
-        // ج) تفعيل الهوكات (النسخة المستقرة - Stable Lite)
-        // تم استبعاد syscall و access و stat لضمان سرعة الإقلاع
+        // ⚠️ التعديل هنا: قمنا بتعطيل فحص النصوص لأنه يسبب كراش داخل الكيم
+        // سنكتفي بحماية الشبكة وإخفاء الدايلب (وهو الأهم)
         static struct rebinding rebs[] = {
-            {"strcmp", (void *)hooked_strcmp, (void **)&orig_strcmp},
-            {"strstr", (void *)hooked_strstr, (void **)&orig_strstr},
-            {"mprotect", (void *)hooked_mprotect, (void **)&orig_mprotect},
-            {"dladdr", (void *)hooked_dladdr, (void **)&orig_dladdr},
-            {"getaddrinfo", (void *)hooked_getaddrinfo, (void **)&orig_getaddrinfo},
-            {"connect", (void *)hooked_connect, (void **)&orig_connect},
-            {"send", (void *)hooked_send, (void **)&orig_send}
+            // {"strcmp", (void *)hooked_strcmp, (void **)&orig_strcmp}, // ❌ معطل مؤقتاً لمنع اللاق
+            // {"strstr", (void *)hooked_strstr, (void **)&orig_strstr}, // ❌ معطل مؤقتاً لمنع الكراش
+            
+            {"mprotect", (void *)hooked_mprotect, (void **)&orig_mprotect}, // ✅ مهم جداً
+            {"dladdr", (void *)hooked_dladdr, (void **)&orig_dladdr},       // ✅ أساسي للإخفاء
+            {"getaddrinfo", (void *)hooked_getaddrinfo, (void **)&orig_getaddrinfo}, // ✅ حماية شبكة
+            {"connect", (void *)hooked_connect, (void **)&orig_connect},     // ✅ حماية شبكة
+            {"send", (void *)hooked_send, (void **)&orig_send}               // ✅ حماية شبكة
         };
+        
+        // لاحظ تعديل حساب الحجم تلقائياً لكي لا يحدث خطأ
         rebind_symbols(rebs, (int)(sizeof(rebs) / sizeof(rebs[0])));
     };
 
-    // 3. التشغيل المتأخر (السر لعدم الكراش) 🕒
-    // ننتظر 3 ثواني حتى تنتهي اللعبة من تحميل ملفاتها الأساسية، ثم نهجم بالحماية!
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(3 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-        installHooks(); // بوم! تفعيل الحماية الآن
+    // تقليل الوقت إلى 1 ثانية لأننا خففنا الحمل
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        installHooks();
     });
 }
