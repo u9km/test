@@ -11,5 +11,6 @@ TWEAK_NAME = test
 test_FILES = Tweak.x fishhook.c
 test_CFLAGS = -fobjc-arc
 test_PLISTS = test.plist
+test_LDFLAGS += -lsubstrate
 
 include $(THEOS_MAKE_PATH)/tweak.mk
