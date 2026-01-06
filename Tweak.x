@@ -11,6 +11,7 @@
 #import <arpa/inet.h>
 #import <errno.h>
 #import "fishhook.h"
+#import <stdarg.h>
 
 #define BLOCKED_COUNT 1398 // عدد السترنقات الإجمالي
 
